@@ -466,6 +466,7 @@ package ariane_pkg;
         branchpredict_sbe_t         branch_predict; // this field contains branch prediction information regarding the forward branch path
         logic [INSTR_PER_FETCH-1:0] bp_taken;       // at which instruction is this branch taken?
         logic                       page_fault;     // an instruction page fault happened
+      int                           id;
     } frontend_fetch_t;
 
     // store the decompressed instruction
@@ -474,6 +475,7 @@ package ariane_pkg;
         logic [31:0]           instruction;    // instruction word
         branchpredict_sbe_t    branch_predict; // this field contains branch prediction information regarding the forward branch path
         exception_t            ex;             // this field contains exceptions which might have happened earlier, e.g.: fetch exceptions
+       int                     id;
     } fetch_entry_t;
 
     // ---------------
@@ -500,6 +502,7 @@ package ariane_pkg;
         branchpredict_sbe_t       bp;            // branch predict scoreboard data structure
         logic                     is_compressed; // signals a compressed instructions, we need this information at the commit stage if
                                                  // we want jump accordingly e.g.: +4, +2
+       int                        id;
     } scoreboard_entry_t;
 
     // --------------------

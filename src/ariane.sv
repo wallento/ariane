@@ -749,11 +749,12 @@ module ariane #(
 // mock tracer for Verilator, to be used with spike-dasm
 `else
 
-  int f;
+  int f, fp;
   logic [63:0] cycles;
 
   initial begin
     f = $fopen("trace_hart_00.dasm", "w");
+     fp = $fopen("trace_hart_00.out", "w");
   end
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -769,15 +770,28 @@ module ariane #(
         riscv::PRIV_LVL_U: mode = "U";
         endcase
       end
+       // Pipeline
+       if (i_frontend.fifo_valid)
+         $fwrite(fp, "%d FE %d %s %016h DASM(%08h)\n", cycles, i_frontend.id, mode, i_frontend.icache_vaddr_q, i_frontend.icache_data_q);
+
+       if (id_stage_i.instr_realigner_i.fetch_entry_valid_o && id_stage_i.instr_realigner_i.fetch_ack_i) begin
+          $fwrite(fp, "%d DE %d\n", cycles, id_stage_i.decoder_i.instruction_o.id);
+       end
+       if (issue_stage_i.i_scoreboard.issue_ack_i && !flush_unissued_instr_ctrl_id)
+          $fwrite(fp, "%d IS %d\n", cycles, issue_stage_i.i_scoreboard.issue_instr_o.id);
+
+
       for (int i = 0; i < NR_COMMIT_PORTS; i++) begin
         if (commit_ack[i] && !commit_instr_id_commit[i].ex.valid) begin
-          $fwrite(f, "%d 0x%0h %s (0x%h) DASM(%h)\n", cycles, commit_instr_id_commit[i].pc, mode, commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].ex.tval[31:0]);
+          $fwrite(f, "%d %d 0x%0h %s (0x%h) DASM(%h)\n", cycles, commit_instr_id_commit[i].id, commit_instr_id_commit[i].pc, mode, commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].ex.tval[31:0]);
+           $fwrite(fp, "%d C %d\n", cycles, commit_instr_id_commit[i].id);
         end else if (commit_ack[i] && commit_instr_id_commit[i].ex.valid) begin
           if (commit_instr_id_commit[i].ex.cause == 2) begin
             $fwrite(f, "Exception Cause: Illegal Instructions, DASM(%h) PC=%h\n", commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].pc);
           end else begin
             if (debug_mode) begin
               $fwrite(f, "%d 0x%0h %s (0x%h) DASM(%h)\n", cycles, commit_instr_id_commit[i].pc, mode, commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].ex.tval[31:0]);
+               $fwrite(fp, "%d C %d\n", cycles, commit_instr_id_commit[i].id);
             end else begin
               $fwrite(f, "Exception Cause: %5d, DASM(%h) PC=%h\n", commit_instr_id_commit[i].ex.cause, commit_instr_id_commit[i].ex.tval[31:0], commit_instr_id_commit[i].pc);
             end
@@ -795,4 +809,3 @@ module ariane #(
   //pragma translate_on
 
 endmodule // ariane
-

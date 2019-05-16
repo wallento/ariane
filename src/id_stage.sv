@@ -113,6 +113,8 @@ module id_stage (
         if (issue_instr_ack_i)
             issue_n.valid = 1'b0;
 
+       decoded_instruction.id = fetch_entry.id;
+
         // if we have a space in the register and the fetch is valid, go get it
         // or the issue stage is currently acknowledging an instruction, which means that we will have space
         // for a new instruction

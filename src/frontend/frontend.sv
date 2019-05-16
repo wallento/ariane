@@ -484,6 +484,14 @@ module frontend #(
         );
     end
 
+   int id;
+
+   initial id = 0;
+
+   always @(posedge clk_i) begin
+      if (rst_ni & fifo_valid)
+        id <= id + 1;
+   end
 
     fifo_v2 #(
         .DEPTH        (  8                   ),
@@ -497,7 +505,7 @@ module frontend #(
         .empty_o     ( fifo_empty            ),
         .alm_full_o  (                       ),
         .alm_empty_o (                       ),
-        .data_i      ( {icache_vaddr_q, icache_data_q, bp_sbe, taken[INSTR_PER_FETCH:1], icache_ex_valid_q} ),
+        .data_i      ( {icache_vaddr_q, icache_data_q, bp_sbe, taken[INSTR_PER_FETCH:1], icache_ex_valid_q, id} ),
         .push_i      ( fifo_valid            ),
         .data_o      ( fetch_entry_o         ),
         .pop_i       ( fifo_pop              )

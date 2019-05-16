@@ -66,6 +66,7 @@ module instr_realigner (
         fetch_entry_o.ex.tval        = (fetch_entry_i.page_fault) ? fetch_entry_i.address : '0;
         fetch_entry_o.ex.cause       = (fetch_entry_i.page_fault) ? riscv::INSTR_PAGE_FAULT : '0;
 
+       fetch_entry_o.id             = fetch_entry_i.id;
         fetch_entry_valid_o  = fetch_entry_valid_i;
         fetch_ack_o        = fetch_ack_i;
         // we just jumped to a half word and encountered an unaligned 32-bit instruction
